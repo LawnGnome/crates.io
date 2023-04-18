@@ -233,13 +233,16 @@ where
     T: QueryFragment<Pg>,
 {
     fn walk_ast<'b>(&'b self, mut out: AstPass<'_, 'b, Pg>) -> QueryResult<()> {
-        out.push_sql("SELECT *, COUNT(*) OVER () FROM (");
+        out.push_sql("WITH base AS (");
         self.query.walk_ast(out.reborrow())?;
-        out.push_sql(") t LIMIT ");
+        out.push_sql(")");
+        out.push_sql(", c AS (SELECT COUNT(*) AS c FROM base)");
+        out.push_sql(", t AS (SELECT * FROM base LIMIT ");
         out.push_bind_param::<BigInt, _>(&self.options.per_page)?;
         if let Some(offset) = self.options.offset() {
             out.push_sql(format!(" OFFSET {offset}").as_str());
         }
+        out.push_sql(") SELECT t.*, c.c FROM t CROSS JOIN c");
         Ok(())
     }
 }
