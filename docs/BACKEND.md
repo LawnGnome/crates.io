@@ -175,4 +175,22 @@ docker run --rm \
 This will give you an S3 compatible Minio instance listening on port 19000, and
 a management console on port 19001.
 
+#### Running tests against S3
+
+If you want to run the test suite against an actual S3 bucket, you must do so
+with the `RECORD` environment variable set to `yes`, otherwise tests will fail
+before any requests are actually sent because the URL in the test cassette
+doesn't match the request URL. For example:
+
+```sh
+RECORD=yes \
+    TEST_S3_REGION=us-east-1 TEST_S3_BUCKET=my-test-bucket \
+    TEST_S3_INDEX_REGION=us-east-1 TEST_S3_INDEX_BUCKET=my-test-bucket \
+    TEST_AWS_ACCESS_KEY=an-actual-AWS-key TEST_AWS_SECRET_KEY=an-actual-secret-key \
+    cargo test
+```
+
+Please do not commit any updated test cassettes generated as a result of running
+the test suite against S3.
+
 ## Scripts

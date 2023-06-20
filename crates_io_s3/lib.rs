@@ -42,7 +42,7 @@ impl Region {
         Ok(Url::parse(&match self {
             Region::Host(host) => format!("{proto}://{host}/{bucket}/{path}"),
             Region::Region(region) => {
-                format!("{proto}://{bucket}.s3-{region}.amazonaws.com/{path}")
+                format!("{proto}://{bucket}.s3.{region}.amazonaws.com/{path}")
             }
             Region::Default => format!("{proto}://{bucket}.s3.amazonaws.com/{path}"),
         })?)

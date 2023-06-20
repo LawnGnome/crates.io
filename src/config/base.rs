@@ -149,11 +149,10 @@ fn parse_region(maybe_region: Option<String>) -> s3::Region {
             let (_proto, host) = region.split_once("://").unwrap();
             s3::Region::Host(host.to_string())
         }
-        Some(region) if region.is_empty() => s3::Region::Default,
-        Some(region) => s3::Region::Region(region),
-        // This needs to match the region configuration that was used to generate the cassettes in
-        // `src/tests/http-data`.
-        None => s3::Region::Host(DEFAULT_TEST_REGION.to_string()),
+        Some(region) if !region.is_empty() => s3::Region::Region(region),
+        // An empty or missing region will use the default. This needs to match the region
+        // configuration that was used to generate the cassettes in `src/tests/http-data`.
+        _ => s3::Region::Host(DEFAULT_TEST_REGION.to_string()),
     }
 }
 
@@ -165,7 +164,7 @@ mod tests {
     fn test_parse_region() {
         for (input, expected) in [
             (None, s3::Region::Host(DEFAULT_TEST_REGION.into())),
-            (Some(""), s3::Region::Default),
+            (Some(""), s3::Region::Host(DEFAULT_TEST_REGION.into())),
             (Some("us-west-2"), s3::Region::Region("us-west-2".into())),
             (Some("http://foo.bar"), s3::Region::Host("foo.bar".into())),
             (
