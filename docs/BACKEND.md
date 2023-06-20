@@ -145,7 +145,8 @@ but are also reproduced here for convenience:
 * `TEST_S3_BUCKET`: the S3 bucket used for package uploads.
 * `TEST_S3_REGION`: the S3 region used to package uploads. This may also be an
   absolute URL (such as `http://127.0.0.1:19000`), in which that will be used as
-  the endpoint.
+  the endpoint. If this is an S3 region name, then it must be one that supports
+  what [AWS documents as `s3-Region` host names][s3-region].
 * `TEST_S3_INDEX_BUCKET`: the S3 bucket used for sparse index uploads.
 * `TEST_S3_INDEX_REGION`: the S3 region used for sparse index uploads. This has
   the same semantics as `TEST_S3_REGION`.
@@ -194,3 +195,5 @@ Please do not commit any updated test cassettes generated as a result of running
 the test suite against S3.
 
 ## Scripts
+
+[s3-region]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html#s3-dash-region
