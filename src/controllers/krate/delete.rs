@@ -77,8 +77,7 @@ pub async fn delete(Path(name): Path<String>, parts: Parts, app: AppState) -> Ap
             .unwrap_or(u64::MAX);
 
         if downloads > max_downloads {
-            let msg =
-                "only crates with less than 100 downloads per month can be deleted after 72 hours";
+            let msg = format!("only crates with less than {DOWNLOADS_PER_MONTH_LIMIT} downloads per month can be deleted after 72 hours");
             return Err(custom(StatusCode::UNPROCESSABLE_ENTITY, msg));
         }
 
