@@ -14,6 +14,8 @@ use diesel_async::{AsyncConnection, RunQueryDsl};
 use http::request::Parts;
 use http::StatusCode;
 
+const DOWNLOADS_PER_MONTH_LIMIT: u64 = 100;
+
 pub async fn delete(Path(name): Path<String>, parts: Parts, app: AppState) -> AppResult<()> {
     let mut conn = app.db_write().await?;
 
@@ -58,8 +60,6 @@ pub async fn delete(Path(name): Path<String>, parts: Parts, app: AppState) -> Ap
             let msg = "only crates with a single owner can be deleted after 72 hours";
             return Err(custom(StatusCode::UNPROCESSABLE_ENTITY, msg));
         }
-
-        const DOWNLOADS_PER_MONTH_LIMIT: u64 = 100;
 
         let age = Utc::now().signed_duration_since(created_at);
         let age_days = age.num_days().to_u64().unwrap_or(u64::MAX);
@@ -146,7 +146,7 @@ mod tests {
         let crate_id = adjust_creation_date(&mut conn, "foo", 71).await?;
 
         // Update downloads count so that it wouldn't be deletable if it wasn't new
-        adjust_downloads(&mut conn, crate_id, 10_000).await?;
+        adjust_downloads(&mut conn, crate_id, DOWNLOADS_PER_MONTH_LIMIT * 100).await?;
 
         assert_crate_exists(&anon, "foo", true).await;
         assert!(upstream.crate_exists("foo")?);
@@ -181,7 +181,7 @@ mod tests {
 
         publish_crate(&user, "foo").await;
         let crate_id = adjust_creation_date(&mut conn, "foo", 73).await?;
-        adjust_downloads(&mut conn, crate_id, 100).await?;
+        adjust_downloads(&mut conn, crate_id, DOWNLOADS_PER_MONTH_LIMIT).await?;
 
         assert_crate_exists(&anon, "foo", true).await;
         assert!(upstream.crate_exists("foo")?);
@@ -322,7 +322,7 @@ mod tests {
 
         publish_crate(&user, "foo").await;
         let crate_id = adjust_creation_date(&mut conn, "foo", 73).await?;
-        adjust_downloads(&mut conn, crate_id, 101).await?;
+        adjust_downloads(&mut conn, crate_id, DOWNLOADS_PER_MONTH_LIMIT + 1).await?;
 
         let response = delete_crate(&user, "foo").await;
         assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
@@ -384,8 +384,10 @@ mod tests {
     async fn adjust_downloads(
         conn: &mut AsyncPgConnection,
         crate_id: i32,
-        downloads: i64,
+        downloads: u64,
     ) -> QueryResult<()> {
+        let downloads = downloads.to_i64().unwrap_or(i64::MAX);
+
         diesel::update(crate_downloads::table)
             .filter(crate_downloads::crate_id.eq(crate_id))
             .set(crate_downloads::downloads.eq(downloads))
