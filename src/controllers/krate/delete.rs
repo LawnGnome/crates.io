@@ -52,8 +52,8 @@ pub async fn delete(Path(name): Path<String>, parts: Parts, app: AppState) -> Ap
 
     let created_at = krate.created_at.and_utc();
 
-    let is_new = created_at > Utc::now() - chrono::Duration::hours(72);
-    if !is_new {
+    let is_old = created_at <= Utc::now() - chrono::Duration::hours(72);
+    if is_old {
         if owners.len() > 1 {
             let msg = "only crates with a single owner can be deleted after 72 hours";
             return Err(custom(StatusCode::UNPROCESSABLE_ENTITY, msg));
