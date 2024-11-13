@@ -40,14 +40,71 @@ impl fmt::Display for ReadOnlyMode {
 pub fn custom(status: StatusCode, detail: impl Into<Cow<'static, str>>) -> BoxedAppError {
     Box::new(CustomApiError {
         status,
-        detail: detail.into(),
+        detail: Detail::Single(detail.into()),
     })
 }
 
 #[derive(Debug, Clone)]
 pub struct CustomApiError {
     status: StatusCode,
-    detail: Cow<'static, str>,
+    detail: Detail,
+}
+
+#[derive(Debug, Clone)]
+enum Detail {
+    Empty,
+    Single(Cow<'static, str>),
+    Multiple(Vec<Cow<'static, str>>),
+}
+
+impl fmt::Display for Detail {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => write!(f, ""),
+            Self::Single(msg) => write!(f, "{msg}"),
+            Self::Multiple(msgs) => write!(f, "{}", msgs.join(", ")),
+        }
+    }
+}
+
+impl CustomApiError {
+    pub fn new(status: StatusCode) -> Self {
+        Self {
+            status,
+            detail: Detail::Empty,
+        }
+    }
+
+    pub fn contains_errors(&self) -> bool {
+        !self.is_empty()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        matches!(&self.detail, Detail::Empty)
+    }
+
+    pub fn push(&mut self, detail: impl Into<Cow<'static, str>>) -> &mut Self {
+        match &mut self.detail {
+            Detail::Empty => {
+                self.detail = Detail::Single(detail.into());
+            }
+            Detail::Single(msg) => {
+                let msg = msg.clone();
+                self.detail = Detail::Multiple(vec![msg, detail.into()]);
+            }
+            Detail::Multiple(msgs) => {
+                msgs.push(detail.into());
+            }
+        }
+
+        self
+    }
+}
+
+impl From<CustomApiError> for BoxedAppError {
+    fn from(value: CustomApiError) -> Self {
+        Box::new(value)
+    }
 }
 
 impl fmt::Display for CustomApiError {
@@ -58,7 +115,33 @@ impl fmt::Display for CustomApiError {
 
 impl AppError for CustomApiError {
     fn response(&self) -> Response {
-        json_error(&self.detail, self.status)
+        #[derive(Serialize)]
+        struct ErrorContent {
+            detail: Cow<'static, str>,
+        }
+
+        impl From<&Cow<'static, str>> for ErrorContent {
+            fn from(value: &Cow<'static, str>) -> Self {
+                Self {
+                    detail: value.clone(),
+                }
+            }
+        }
+
+        #[derive(Serialize)]
+        struct ErrorBody {
+            errors: Vec<ErrorContent>,
+        }
+
+        let body = ErrorBody {
+            errors: match &self.detail {
+                Detail::Empty => Vec::new(),
+                Detail::Single(msg) => vec![msg.into()],
+                Detail::Multiple(msgs) => msgs.iter().map(|msg| msg.into()).collect(),
+            },
+        };
+
+        (self.status, Json(body)).into_response()
     }
 }
 

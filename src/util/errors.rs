@@ -32,7 +32,9 @@ mod json;
 use crate::email::EmailError;
 use crates_io_github::GitHubError;
 pub use json::TOKEN_FORMAT_ERROR;
-pub(crate) use json::{custom, InsecurelyGeneratedTokenRevoked, ReadOnlyMode, TooManyRequests};
+pub(crate) use json::{
+    custom, CustomApiError, InsecurelyGeneratedTokenRevoked, ReadOnlyMode, TooManyRequests,
+};
 
 pub type BoxedAppError = Box<dyn AppError>;
 

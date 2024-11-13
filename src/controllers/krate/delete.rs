@@ -2,7 +2,7 @@ use crate::app::AppState;
 use crate::auth::AuthCheck;
 use crate::models::{Crate, Rights};
 use crate::schema::{crate_downloads, crates, dependencies};
-use crate::util::errors::{crate_not_found, custom, AppResult, BoxedAppError};
+use crate::util::errors::{crate_not_found, custom, AppResult, BoxedAppError, CustomApiError};
 use crate::worker::jobs;
 use axum::extract::Path;
 use bigdecimal::ToPrimitive;
@@ -56,9 +56,10 @@ pub async fn delete(Path(name): Path<String>, parts: Parts, app: AppState) -> Ap
 
     let is_old = created_at <= Utc::now() - chrono::Duration::hours(72);
     if is_old {
+        let mut errors = CustomApiError::new(StatusCode::UNPROCESSABLE_ENTITY);
+
         if owners.len() > 1 {
-            let msg = "only crates with a single owner can be deleted after 72 hours";
-            return Err(custom(StatusCode::UNPROCESSABLE_ENTITY, msg));
+            errors.push("only crates with a single owner can be deleted after 72 hours");
         }
 
         let age = Utc::now().signed_duration_since(created_at);
@@ -78,7 +79,7 @@ pub async fn delete(Path(name): Path<String>, parts: Parts, app: AppState) -> Ap
 
         if downloads > max_downloads {
             let msg = format!("only crates with less than {DOWNLOADS_PER_MONTH_LIMIT} downloads per month can be deleted after 72 hours");
-            return Err(custom(StatusCode::UNPROCESSABLE_ENTITY, msg));
+            errors.push(msg);
         }
 
         let has_rev_dep = dependencies::table
@@ -90,8 +91,11 @@ pub async fn delete(Path(name): Path<String>, parts: Parts, app: AppState) -> Ap
             .is_some();
 
         if has_rev_dep {
-            let msg = "only crates without reverse dependencies can be deleted after 72 hours";
-            return Err(custom(StatusCode::UNPROCESSABLE_ENTITY, msg));
+            errors.push("only crates without reverse dependencies can be deleted after 72 hours");
+        }
+
+        if errors.contains_errors() {
+            return Err(errors.into());
         }
     }
 
