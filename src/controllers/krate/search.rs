@@ -1,22 +1,23 @@
 //! Endpoint for searching and discovery functionality
 
 use crate::auth::AuthCheck;
-use axum_extra::json;
-use axum_extra::response::ErasedJson;
+use axum::Json;
 use diesel::dsl::{exists, sql, InnerJoinQuerySource, LeftJoinQuerySource};
 use diesel::prelude::*;
 use diesel::sql_types::{Bool, Text};
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use diesel_full_text_search::*;
 use http::request::Parts;
+use serde::Serialize;
 use std::sync::OnceLock;
 use tracing::Instrument;
+use utoipa::ToSchema;
 
 use crate::app::AppState;
 use crate::controllers::helpers::Paginate;
 use crate::models::{Crate, CrateOwner, OwnerKind, TopVersions, Version};
 use crate::schema::*;
-use crate::util::errors::{bad_request, AppResult};
+use crate::util::errors::{bad_request, AppResult, ErrorResponse};
 use crate::views::EncodableCrate;
 
 use crate::controllers::helpers::pagination::{Page, PaginationOptions};
@@ -35,9 +36,64 @@ use crate::util::RequestUtils;
     path = "/api/v1/crates",
     operation_id = "crates_list",
     tag = "crates",
-    responses((status = 200, description = "Successful Response")),
+    params(
+        (
+            "sort" = Option<String>, Query,
+            description = r#"Sort order: one of "relevance", "downloads", "recent-downloads", "recent-updates", "new""#,
+        ),
+        (
+            "q" = Option<String>, Query,
+            description = "Query string to be matched against crate names",
+        ),
+        (
+            "include_yanked" = Option<String>, Query, pattern = "^yes$",
+            description = r#"Set to "yes" to include yanked crates"#,
+        ),
+        (
+            "category" = Option<String>, Query,
+            description = "If set, only return crates that belong to this category, or one of its subcategories",
+        ),
+        (
+            "all_keywords" = Option<String>, Query,
+            description = "If set, only return crates matching all of the given keywords",
+        ),
+        (
+            "keyword" = Option<String>, Query,
+            description = r#"If set, only return crates matching the given keyword (ignored if "all_keywords" is set)"#,
+        ),
+        (
+            "letter" = Option<char>, Query,
+            description = r#"If set, only return crates with names that start with the given letter (ignored if "all_keywords" or "keyword" are set)"#,
+        ),
+        (
+            "user_id" = Option<i32>, Query,
+            description = r#"If set, only crates owned by the given crates.io user ID are returned (ignored if "all_keywords", "keyword", or "letter" are set)"#,
+        ),
+        (
+            "team_id" = Option<i32>, Query,
+            description = r#"If set, only crates owned by the given crates.io team ID are returned (ignored if "all_keywords", "keyword", "letter", or "user_id" are set)"#,
+        ),
+        (
+            "following" = Option<String>, Query,
+            description = r#"If set, only crates owned by users the current user follows are returned (ignored if "all_keywords", "keyword", "letter", "user_id", or "team_id" are set)"#,
+        ),
+        (
+            "has_ids" = Option<bool>, Query,
+            description = r#"If set, the query string is examined for string values with the "ids[]" key, and only crates matching one of those names are returned (ignored if "all_keywords", "keyword", "letter", "user_id", "team_id", or "following" are set)"#,
+        ),
+        (
+            "ids[]" = Option<Vec<String>>, Query,
+            description = r#"If "has_ids" is enabled, these values restrict the crates that can be returned"#,
+        ),
+    ),
+    responses(
+        (status = StatusCode::OK, body = inline(Results), description = "Successful Response"),
+        (status = StatusCode::FORBIDDEN, body = ErrorResponse, description = r#"Sent if the "following" query parameter is set and the user is not logged in"#),
+        (status = StatusCode::INTERNAL_SERVER_ERROR, body = ErrorResponse),
+        (status = StatusCode::SERVICE_UNAVAILABLE, body = ErrorResponse, description = "Sent if crates.io is in read-only mode and this endpoint is unavailable"),
+    ),
 )]
-pub async fn search(app: AppState, req: Parts) -> AppResult<ErasedJson> {
+pub async fn search(app: AppState, req: Parts) -> AppResult<Json<Results>> {
     // Notes:
     // The different use cases this function covers is handled through passing
     // in parameters in the GET request.
@@ -249,14 +305,28 @@ pub async fn search(app: AppState, req: Parts) -> AppResult<ErasedJson> {
         )
         .collect::<Vec<_>>();
 
-    Ok(json!({
-        "crates": crates,
-        "meta": {
-            "total": total,
-            "next_page": next_page,
-            "prev_page": prev_page,
+    Ok(Json(Results {
+        crates,
+        meta: Meta {
+            total,
+            next_page,
+            prev_page,
         },
     }))
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct Results {
+    crates: Vec<EncodableCrate>,
+    #[schema(inline)]
+    meta: Meta,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct Meta {
+    total: i64,
+    next_page: Option<String>,
+    prev_page: Option<String>,
 }
 
 #[derive(Default)]

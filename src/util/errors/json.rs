@@ -1,8 +1,9 @@
 use axum::response::{IntoResponse, Response};
-use axum::Extension;
+use axum::{Extension, Json};
 use axum_extra::json;
 use std::borrow::Cow;
 use std::fmt;
+use utoipa::ToSchema;
 
 use super::{AppError, BoxedAppError};
 
@@ -13,8 +14,26 @@ use http::{header, StatusCode};
 
 /// Generates a response with the provided status and description as JSON
 fn json_error(detail: &str, status: StatusCode) -> Response {
-    let json = json!({ "errors": [{ "detail": detail }] });
-    (status, json).into_response()
+    (
+        status,
+        Json(ErrorResponse {
+            errors: vec![JsonError {
+                detail: detail.to_string(),
+            }],
+        }),
+    )
+        .into_response()
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct ErrorResponse {
+    #[schema(inline)]
+    errors: Vec<JsonError>,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct JsonError {
+    detail: String,
 }
 
 // The following structs wrap owned data and provide a custom message to the user

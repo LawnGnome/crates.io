@@ -1,5 +1,6 @@
 use chrono::NaiveDateTime;
 use secrecy::ExposeSecret;
+use utoipa::ToSchema;
 
 use crate::external_urls::remove_blocked_urls;
 use crate::models::{
@@ -193,7 +194,7 @@ impl From<Keyword> for EncodableKeyword {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub struct EncodableCrate {
     pub id: String,
     pub name: String,
@@ -202,6 +203,7 @@ pub struct EncodableCrate {
     pub versions: Option<Vec<i32>>,
     pub keywords: Option<Vec<String>>,
     pub categories: Option<Vec<String>>,
+    #[schema(ignore = true, value_type = ())]
     pub badges: [(); 0],
     #[serde(with = "rfc3339")]
     pub created_at: NaiveDateTime,
@@ -218,6 +220,7 @@ pub struct EncodableCrate {
     pub homepage: Option<String>,
     pub documentation: Option<String>,
     pub repository: Option<String>,
+    #[schema(inline)]
     pub links: EncodableCrateLinks,
     pub exact_match: bool,
 }
@@ -343,7 +346,7 @@ impl EncodableCrate {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub struct EncodableCrateLinks {
     pub version_downloads: String,
     pub versions: Option<String>,
