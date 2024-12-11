@@ -1,8 +1,9 @@
 use axum::extract::DefaultBodyLimit;
 use axum::response::IntoResponse;
 use axum::routing::{delete, get, post, put};
-use axum::{Json, Router};
+use axum::Router;
 use http::{Method, StatusCode};
+use utoipa_swagger_ui::SwaggerUi;
 
 use crate::app::AppState;
 use crate::controllers::user::update_user;
@@ -177,7 +178,7 @@ pub fn build_axum_router(state: AppState) -> Router<()> {
     }
 
     router
-        .route("/api/openapi.json", get(|| async { Json(openapi) }))
+        .merge(SwaggerUi::new("/api/openapi").url("/api/openapi.json", openapi))
         .fallback(|method: Method| async move {
             match method {
                 Method::HEAD => StatusCode::NOT_FOUND.into_response(),
