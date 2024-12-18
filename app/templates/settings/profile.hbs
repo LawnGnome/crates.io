@@ -6,16 +6,7 @@
   <div local-class='me-profile'>
     <h2>Profile Information</h2>
 
-    <div local-class='info'>
-      <UserLink @user={{this.model.user}}> <UserAvatar @user={{this.model.user}} @size="medium" /> </UserLink>
-
-      <dl>
-        <dt>Name</dt>
-        <dd>{{ this.model.user.name }}</dd>
-        <dt>GitHub Account</dt>
-        <dd>{{ this.model.user.login }}</dd>
-      </dl>
-    </div>
+    <User::Info @user={{this.model.user}} />
 
     <p>
         To update your name and GitHub account, change them in your GitHub profile, then sign out and login again to
