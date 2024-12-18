@@ -105,6 +105,11 @@ pub fn build_axum_router(state: AppState) -> Router<()> {
             "/api/v1/users/:user_id",
             get(user::other::show).put(update_user),
         )
+        .route("/api/v1/users/:user_id/admin", get(user::admin::get))
+        .route(
+            "/api/v1/users/:user_id/lock",
+            put(user::admin::lock).delete(user::admin::unlock),
+        )
         .route("/api/v1/users/:user_id/stats", get(user::other::stats))
         .route("/api/v1/teams/:team_id", get(team::show_team))
         .route("/api/v1/me", get(user::me::me))

@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod me;
 pub mod other;
 mod resend;
