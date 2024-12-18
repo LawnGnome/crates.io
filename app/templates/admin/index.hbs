@@ -1,0 +1,35 @@
+{{page-title 'Index'}}
+
+<PageHeader @title='crates.io administration' />
+
+<div>
+  <h2>Search for user</h2>
+
+  <form
+    action='/admin/users'
+    local-class='form'
+    autocapitalize='off'
+    autocomplete='off'
+    autocorrect='off'
+    spellcheck='false'
+    {{on 'submit' (prevent-default this.searchUser)}}
+  >
+    {{#let (unique-id) as |id|}}
+      <label local-class='label' for={{id}}>Username</label>
+
+      <Input
+        id={{id}}
+        local-class='input'
+        @type='text'
+        @value={{this.username}}
+        inputmode='search'
+        name='login'
+        required
+      />
+      <button local-class='submit-button' type='submit'>
+        <span local-class='submit-label'>Submit</span>
+        {{svg-jar 'search' local-class='submit-icon'}}
+      </button>
+    {{/let}}
+  </form>
+</div>

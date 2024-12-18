@@ -95,5 +95,6 @@ module.exports = function (defaults) {
         },
       },
     ],
+    splitAtRoutes: ['admin'],
   });
 };

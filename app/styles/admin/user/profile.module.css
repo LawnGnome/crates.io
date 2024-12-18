@@ -1,0 +1,116 @@
+.section {
+  margin-bottom: var(--space-s);
+}
+
+.responsive-data-list {
+  @media only screen and (max-width: 550px) {
+    dl {
+      margin-left: 0;
+    }
+
+    dt,
+    dd {
+      float: none;
+      display: block;
+      text-align: left;
+    }
+
+    dt {
+      margin-top: var(--space-2xs);
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+  }
+}
+
+.profile {
+  composes: section responsive-data-list;
+}
+
+.locked {
+  composes: section;
+}
+
+.verification {
+  padding-left: var(--space-3xs);
+}
+
+.verified {
+  composes: verification;
+
+  color: green;
+  font-weight: bold;
+}
+
+.unverified {
+  composes: verification;
+
+  color: red;
+}
+
+.lock-status {
+  composes: responsive-data-list;
+
+  margin-bottom: var(--space-s);
+
+  /* The <dl> consists of a bunch of floats, so let's ensure we've cleared it
+  before the next element. */
+  &:after {
+    display: block;
+    content: ' ';
+    clear: both;
+  }
+}
+
+.lock-form {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: var(--space-xs) var(--space-s);
+  align-items: baseline;
+
+  /* Undo fieldset default styling. */
+  border: 0;
+  margin: 0;
+  padding: 0;
+
+  label {
+    grid-column: 1 / 2;
+  }
+
+  input,
+  select {
+    grid-column: 2 / 4;
+
+    border: solid 1px var(--gray-border);
+    border-radius: var(--space-3xs);
+    padding: var(--space-3xs) var(--space-2xs);
+  }
+
+  select {
+    background-image: url('/assets/dropdown.svg');
+    background-repeat: no-repeat;
+    background-position: calc(100% - var(--space-2xs)) center;
+    background-size: 10px;
+    appearance: none;
+    padding-right: var(--space-m);
+
+    html[data-color-scheme='light'] &,
+    html[data-color-scheme='system'] & {
+      background-color: white;
+    }
+  }
+
+  button {
+    grid-column: 2 / 3;
+  }
+}
+
+.unlock-button {
+  composes: red-button small from '../../shared/buttons.module.css';
+}
+
+.lock-button {
+  composes: red-button small from '../../shared/buttons.module.css';
+}
