@@ -17,6 +17,7 @@ export default class User extends Model {
   @attr url;
   @attr kind;
   @attr publish_notifications;
+  @attr lock;
 
   async stats() {
     return await waitForPromise(apiAction(this, { method: 'GET', path: 'stats' }));

@@ -1,0 +1,17 @@
+{{page-title 'Crates'}}
+
+<Admin::User::Page @user={{@model.user}}>
+  <h2>Crates</h2>
+
+  <div local-class='results'>
+    <ResultsCount
+      @start={{this.pagination.currentPageStart}}
+      @end={{this.pagination.currentPageEnd}}
+      @total={{this.totalItems}}
+    />
+  </div>
+
+  <CrateList local-class='list' @crates={{@model.crates}} />
+
+  <Pagination @pagination={{this.pagination}} />
+</Admin::User::Page>

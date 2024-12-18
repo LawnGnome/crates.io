@@ -1,4 +1,4 @@
-import EmberRouter from '@ember/routing/router';
+import EmberRouter from '@embroider/router';
 
 import config from './config/environment';
 
@@ -64,4 +64,10 @@ Router.map(function () {
   this.route('support');
 
   this.route('catch-all', { path: '*path' });
+  this.route('admin', function () {
+    this.route('user', { path: '/users/:user_id' }, function () {
+      this.route('crates');
+      this.route('profile');
+    });
+  });
 });

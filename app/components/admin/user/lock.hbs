@@ -1,0 +1,13 @@
+<dl>
+  <dt>Reason</dt>
+  <dd>{{@reason}}</dd>
+  <dt>Until</dt>
+  <dd>
+    {{#if @until}}
+      {{date-format-iso @until}}
+      ({{date-format-distance-to-now @until addSuffix=true}})
+    {{else}}
+      Indefinite
+    {{/if}}
+  </dd>
+</dl>

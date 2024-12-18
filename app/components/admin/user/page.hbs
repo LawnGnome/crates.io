@@ -1,0 +1,10 @@
+<div local-class='page'>
+  <SideMenu as |menu|>
+    <menu.Item @link={{link 'admin.user.profile'}}>Profile</menu.Item>
+    <menu.Item @link={{link 'admin.user.crates'}}>Crates</menu.Item>
+  </SideMenu>
+
+  <div local-class='content'>
+    {{yield}}
+  </div>
+</div>
