@@ -1,0 +1,11 @@
+<div local-class='info' ...attributes>
+  <UserLink @user={{@user}}> <UserAvatar @user={{@user}} @size='medium' /> </UserLink>
+
+  <dl>
+    <dt>Name</dt>
+    <dd>{{@user.name}}</dd>
+    <dt>GitHub Account</dt>
+    <dd>{{@user.login}}</dd>
+    {{yield}}
+  </dl>
+</div>
