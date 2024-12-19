@@ -7,6 +7,10 @@
     background-color: light-dark(white, #141413);
     border-radius: var(--space-3xs);
     box-shadow: var(--shadow);
+
+    &.yanked {
+        opacity: 0.8;
+    }
 }
 
 .description-box {
@@ -113,4 +117,8 @@ ul.quick-links {
     > * + * {
         margin-left: var(--space-xs);
     }
+}
+
+.yanked-badge {
+  margin-left: 0.75em;
 }

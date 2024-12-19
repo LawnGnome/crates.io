@@ -1,4 +1,4 @@
-<div local-class="crate-row" data-test-crate-row ...attributes>
+<div local-class="crate-row {{if @crate.yanked "yanked"}}" data-test-crate-row ...attributes>
   <div local-class="description-box">
     <div>
       {{#let (link "crate" @crate.id) as |l|}}
@@ -16,6 +16,8 @@
         >
           {{svg-jar "copy" alt="Copy Cargo.toml snippet to clipboard"}}
         </CopyButton>
+      {{else if @crate.yanked}}
+        <YankedBadge local-class='yanked-badge' />
       {{/if}}
     </div>
     <div local-class="description" data-test-description>
