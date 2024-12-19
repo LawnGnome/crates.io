@@ -1,3 +1,12 @@
+.admin {
+    flex: 1;
+    text-align: right;
+}
+
+.admin-link {
+    composes: yellow-button small from './shared/buttons.module.css';
+}
+
 .results-meta {
     display: flex;
     align-items: center;
