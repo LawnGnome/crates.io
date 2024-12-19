@@ -1,4 +1,5 @@
 import Controller from '@ember/controller';
+import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 
 import { pagination } from '../utils/pagination';
@@ -6,6 +7,8 @@ import { pagination } from '../utils/pagination';
 // TODO: reduce duplication with controllers/crates
 
 export default class UserController extends Controller {
+  @service session;
+
   queryParams = ['page', 'per_page', 'sort'];
   @tracked page = '1';
   @tracked per_page = 10;

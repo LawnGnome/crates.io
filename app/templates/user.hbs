@@ -1,5 +1,10 @@
 <PageHeader data-test-heading>
-  <UserHeader @user={{this.model.user}} />
+  <UserHeader @user={{this.model.user}}>
+    {{#if this.session.isAdmin}}
+      <div local-class='admin'>
+        <LinkTo local-class='admin-link' @route='admin.user' @model={{this.model.user.login}}>Admin</LinkTo></div>
+    {{/if}}
+  </UserHeader>
 </PageHeader>
 
 <div local-class="results-meta">
