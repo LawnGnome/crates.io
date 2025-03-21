@@ -3,6 +3,7 @@ use axum::response::{IntoResponse, Response};
 
 pub mod authorization;
 pub(crate) mod pagination;
+pub(crate) mod secret_scanning;
 
 pub(crate) use self::pagination::Paginate;
 
