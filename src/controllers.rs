@@ -3,6 +3,7 @@ pub mod util;
 
 pub mod category;
 pub mod crate_owner_invitation;
+pub mod deps_dev;
 pub mod git;
 pub mod github;
 pub mod keyword;

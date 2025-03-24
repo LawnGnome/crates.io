@@ -92,6 +92,11 @@ pub fn build_axum_router(state: AppState) -> Router<()> {
     let mut router = router
         // Metrics
         .route("/api/private/metrics/{kind}", get(metrics::prometheus))
+        // Alerts from deps.dev scanning for exposed API tokens.
+        .route(
+            "/api/deps.dev/secret-scanning/verify",
+            post(deps_dev::secret_scanning::verify),
+        )
         // Alerts from GitHub scanning for exposed API tokens
         .route(
             "/api/github/secret-scanning/verify",

@@ -39,6 +39,9 @@ pub struct App {
     pub github_oauth:
         BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointNotSet, EndpointSet>,
 
+    /// deps.dev API client.
+    pub deps_dev: Box<dyn DepsDevClient>,
+
     /// The server configuration
     pub config: Arc<config::Server>,
 
