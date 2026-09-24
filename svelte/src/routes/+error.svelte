@@ -41,7 +41,7 @@
       <p class="details" data-test-details>{page.error.details}</p>
     {/if}
 
-    {#if page.error?.loginNeeded}
+    {#if page.error?.loginNeeded || (page.error?.adminNeeded && session.currentUser === null)}
       <button
         type="button"
         class="link button-reset text--link"

@@ -11,6 +11,7 @@ declare global {
       details?: string;
       tryAgain?: boolean;
       loginNeeded?: boolean;
+      adminNeeded?: boolean;
     }
 
     // interface Locals {}
