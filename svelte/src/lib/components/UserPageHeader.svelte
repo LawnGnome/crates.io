@@ -5,8 +5,11 @@
 <script lang="ts">
   import type { components } from '@crates-io/api-client';
 
+  import { resolve } from '$app/paths';
   import { formatDistanceToNow } from 'date-fns';
 
+  import * as NavTabs from '$lib/components/nav-tabs';
+  import { getSession } from '$lib/utils/session.svelte';
   import AccountChip from './AccountChip.svelte';
   import Icon from './Icon.svelte';
   import PageHeader from './PageHeader.svelte';
@@ -29,8 +32,14 @@
     name?: string | null;
   }
 
-  interface UserPageHeaderUserLock {
+  export interface UserPageHeaderUserLock {
+    /** The reason the user is locked. */
     reason: string;
+
+    /**
+     * When the user is locked until. If null, then the user is locked
+     * indefinitely.
+     */
     until?: string | null;
   }
 
@@ -41,6 +50,7 @@
     /** The external accounts linked to the user. */
     linkedAccounts: LinkedAccount[];
 
+    /** The lock status of the user. */
     lock?: UserPageHeaderUserLock | null;
   }
 
@@ -62,6 +72,11 @@
       }
     }
   });
+
+  let session = getSession();
+
+  let cratesHref = $derived(resolve('/users/[user_id]', { user_id: user.login }));
+  let metadataHref = $derived(resolve('/users/[user_id]/admin', { user_id: user.login }));
 </script>
 
 <PageHeader data-test-heading>
@@ -100,6 +115,13 @@
     </div>
   </div>
 </PageHeader>
+
+{#if session.currentUser?.is_admin}
+  <NavTabs.Root aria-label="{user.login} user subpages" class="mb-s" data-test-user-tabs>
+    <NavTabs.Tab href={cratesHref} data-test-crates-tab>Crates</NavTabs.Tab>
+    <NavTabs.Tab href={metadataHref} data-test-crates-tab>Admin</NavTabs.Tab>
+  </NavTabs.Root>
+{/if}
 
 <style>
   .layout {
