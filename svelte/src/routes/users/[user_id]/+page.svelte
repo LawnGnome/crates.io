@@ -3,7 +3,6 @@
   import Pagination from '$lib/components/Pagination.svelte';
   import ResultsCount from '$lib/components/ResultsCount.svelte';
   import * as SortDropdown from '$lib/components/sort-dropdown';
-  import UserPageHeader from '$lib/components/UserPageHeader.svelte';
   import { calculatePagination } from '$lib/utils/pagination';
 
   const MAX_PAGES = 50;
@@ -20,8 +19,6 @@
     return 'Alphabetical';
   });
 </script>
-
-<UserPageHeader user={data.user} linkedAccounts={data.linkedAccounts ?? []} lock={data.lock} />
 
 <div class="results-meta mb-s">
   <ResultsCount

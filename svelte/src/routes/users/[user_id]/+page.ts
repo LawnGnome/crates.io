@@ -3,9 +3,9 @@ import type { paths } from '@crates-io/api-client';
 import { createClient } from '@crates-io/api-client';
 import { error } from '@sveltejs/kit';
 
-import { isLoggedIn } from '$lib/utils/session.svelte';
-
 export async function load({ fetch, params, parent, url }) {
+  let { user, linkedAccounts, currentUser, lock } = await parent();
+
   let client = createClient({ fetch });
 
   let pageStr = url.searchParams.get('page') ?? '1';
@@ -13,24 +13,9 @@ export async function load({ fetch, params, parent, url }) {
   let perPage = 10;
   let sort = url.searchParams.get('sort') ?? 'alpha';
 
-  let { user, linked_accounts: linkedAccounts } = await loadUser(client, params.user_id);
-
   // Check if the logged-in user is viewing their own profile, so that
-  // yanked crates are included in the results. We gate the `parent()`
-  // call behind `isLoggedIn()` to avoid the overhead of waiting for
-  // the `/api/v1/me` request for unauthenticated users.
-  //
-  // NOTE: `isLoggedIn()` reads from localStorage, which is only
-  // available in the browser. This will need to be revisited if SSR
-  // is implemented in the future.
-  let isOwnProfile = false;
-  let isAdmin = false;
-  if (isLoggedIn()) {
-    let { userPromise } = await parent();
-    let currentUser = await userPromise;
-    isOwnProfile = currentUser?.id === user.id;
-    isAdmin = currentUser?.is_admin === true;
-  }
+  // yanked crates are included in the results.
+  let isOwnProfile = currentUser?.id === user.id;
 
   let cratesResponse = await loadCrates(client, params.user_id, {
     user_id: user.id,
@@ -40,9 +25,7 @@ export async function load({ fetch, params, parent, url }) {
     include_yanked: isOwnProfile ? 'yes' : 'n',
   });
 
-  let lock = isAdmin ? (await loadLock(client, params.user_id)).lock : undefined;
-
-  return { user, linkedAccounts, cratesResponse, lock, page, perPage, sort };
+  return { user, linkedAccounts, lock, cratesResponse, page, perPage, sort };
 }
 
 function loadUserError(login: string, status: number): never {
@@ -53,28 +36,6 @@ function loadUserError(login: string, status: number): never {
   }
 }
 
-async function loadUser(client: ReturnType<typeof createClient>, login: string) {
-  let response;
-  try {
-    response = await client.GET('/api/v1/users/{user}', {
-      params: {
-        path: { user: login },
-        query: { include: 'linked_accounts' },
-      },
-    });
-  } catch {
-    // Network errors are treated as `504 Gateway Timeout`
-    loadUserError(login, 504);
-  }
-
-  let status = response.response.status;
-  if (response.error) {
-    loadUserError(login, status);
-  }
-
-  return response.data;
-}
-
 async function loadCrates(
   client: ReturnType<typeof createClient>,
   login: string,
@@ -83,27 +44,6 @@ async function loadCrates(
   let response;
   try {
     response = await client.GET('/api/v1/crates', { params: { query } });
-  } catch {
-    // Network errors are treated as `504 Gateway Timeout`
-    loadUserError(login, 504);
-  }
-
-  let status = response.response.status;
-  if (response.error) {
-    loadUserError(login, status);
-  }
-
-  return response.data;
-}
-
-async function loadLock(client: ReturnType<typeof createClient>, login: string) {
-  let response;
-  try {
-    response = await client.GET('/api/v1/users/{user}/lock', {
-      params: {
-        path: { user: login },
-      },
-    });
   } catch {
     // Network errors are treated as `504 Gateway Timeout`
     loadUserError(login, 504);
