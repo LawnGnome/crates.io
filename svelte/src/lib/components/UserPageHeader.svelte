@@ -5,8 +5,12 @@
 <script lang="ts">
   import type { components } from '@crates-io/api-client';
 
+  import { formatDistanceToNow } from 'date-fns';
+
   import AccountChip from './AccountChip.svelte';
+  import Icon from './Icon.svelte';
   import PageHeader from './PageHeader.svelte';
+  import Tooltip from './Tooltip.svelte';
   import UserAvatar from './UserAvatar.svelte';
 
   type LinkedAccount = Pick<components['schemas']['LinkedAccount'], 'account_id' | 'login' | 'provider'>;
@@ -25,15 +29,22 @@
     name?: string | null;
   }
 
+  interface UserPageHeaderUserLock {
+    reason: string;
+    until?: string | null;
+  }
+
   interface Props {
     /** The public user identity displayed in the header. */
     user: UserPageHeaderUser;
 
     /** The external accounts linked to the user. */
     linkedAccounts: LinkedAccount[];
+
+    lock?: UserPageHeaderUserLock | null;
   }
 
-  let { user, linkedAccounts }: Props = $props();
+  let { user, linkedAccounts, lock }: Props = $props();
 
   function buildUrl(account: LinkedAccount): string {
     switch (account.provider) {
@@ -41,6 +52,16 @@
         return `https://github.com/${account.login}`;
     }
   }
+
+  let lockTooltip = $derived.by(() => {
+    if (lock) {
+      if (lock.until) {
+        return `Locked for ${formatDistanceToNow(lock.until)}: ${lock.reason}`;
+      } else {
+        return `Locked indefinitely: ${lock.reason}`;
+      }
+    }
+  });
 </script>
 
 <PageHeader data-test-heading>
@@ -52,7 +73,15 @@
       data-test-avatar
     />
     <div class="identity">
-      <h1 data-test-username>{user.login}</h1>
+      <h1 data-test-username>
+        {user.login}
+        {#if lockTooltip}
+          <div>
+            <Icon class="i-mdi:lock" />
+            <Tooltip text={lockTooltip} />
+          </div>
+        {/if}
+      </h1>
       {#if user.name}
         <div class="display-name" data-test-display-name>{user.name}</div>
       {/if}
@@ -88,6 +117,8 @@
     margin: 0;
     line-height: 1.1;
     overflow-wrap: anywhere;
+    display: flex;
+    gap: var(--space-3xs);
   }
 
   .display-name {

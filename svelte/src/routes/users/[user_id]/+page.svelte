@@ -21,7 +21,7 @@
   });
 </script>
 
-<UserPageHeader user={data.user} linkedAccounts={data.linkedAccounts ?? []} />
+<UserPageHeader user={data.user} linkedAccounts={data.linkedAccounts ?? []} lock={data.lock} />
 
 <div class="results-meta mb-s">
   <ResultsCount

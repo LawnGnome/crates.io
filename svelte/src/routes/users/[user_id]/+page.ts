@@ -24,10 +24,12 @@ export async function load({ fetch, params, parent, url }) {
   // available in the browser. This will need to be revisited if SSR
   // is implemented in the future.
   let isOwnProfile = false;
+  let isAdmin = false;
   if (isLoggedIn()) {
     let { userPromise } = await parent();
     let currentUser = await userPromise;
     isOwnProfile = currentUser?.id === user.id;
+    isAdmin = currentUser?.is_admin === true;
   }
 
   let cratesResponse = await loadCrates(client, params.user_id, {
@@ -38,7 +40,9 @@ export async function load({ fetch, params, parent, url }) {
     include_yanked: isOwnProfile ? 'yes' : 'n',
   });
 
-  return { user, linkedAccounts, cratesResponse, page, perPage, sort };
+  let lock = isAdmin ? (await loadLock(client, params.user_id)).lock : undefined;
+
+  return { user, linkedAccounts, cratesResponse, lock, page, perPage, sort };
 }
 
 function loadUserError(login: string, status: number): never {
@@ -79,6 +83,27 @@ async function loadCrates(
   let response;
   try {
     response = await client.GET('/api/v1/crates', { params: { query } });
+  } catch {
+    // Network errors are treated as `504 Gateway Timeout`
+    loadUserError(login, 504);
+  }
+
+  let status = response.response.status;
+  if (response.error) {
+    loadUserError(login, status);
+  }
+
+  return response.data;
+}
+
+async function loadLock(client: ReturnType<typeof createClient>, login: string) {
+  let response;
+  try {
+    response = await client.GET('/api/v1/users/{user}/lock', {
+      params: {
+        path: { user: login },
+      },
+    });
   } catch {
     // Network errors are treated as `504 Gateway Timeout`
     loadUserError(login, 504);
