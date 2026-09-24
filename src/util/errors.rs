@@ -58,6 +58,10 @@ pub fn account_locked(reason: &str, until: Option<DateTime<Utc>>) -> BoxedAppErr
     custom(StatusCode::FORBIDDEN, detail)
 }
 
+pub fn conflict(detail: impl Into<Cow<'static, str>>) -> BoxedAppError {
+    custom(StatusCode::CONFLICT, detail)
+}
+
 pub fn forbidden(detail: impl Into<Cow<'static, str>>) -> BoxedAppError {
     custom(StatusCode::FORBIDDEN, detail)
 }

@@ -7212,6 +7212,55 @@ expression: response.json()
       }
     },
     "/api/v1/users/{user}/lock": {
+      "delete": {
+        "operationId": "delete",
+        "parameters": [
+          {
+            "description": "crates.io username",
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Client Error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Server Error"
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Unlocks the given user.",
+        "tags": [
+          "users",
+          "admin"
+        ]
+      },
       "get": {
         "operationId": "get",
         "parameters": [
