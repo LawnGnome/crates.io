@@ -4,13 +4,23 @@
 
   import { createClient } from '@crates-io/api-client';
 
+  import { NotificationsState, setNotifications } from '$lib/notifications.svelte';
   import { SessionState, setSession } from '$lib/utils/session.svelte';
 
   let {
     session,
+    notifications,
     component: Comp,
     props,
-  }: { session?: SessionState; component: Component<Props>; props: Props } = $props();
+  }: {
+    session?: SessionState;
+    notifications?: NotificationsState;
+    component: Component<Props>;
+    props: Props;
+  } = $props();
+
+  // svelte-ignore state_referenced_locally
+  setNotifications(notifications || new NotificationsState());
 
   // svelte-ignore state_referenced_locally
   setSession(session || new SessionState(createClient()));

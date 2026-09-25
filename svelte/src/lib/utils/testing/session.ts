@@ -1,3 +1,4 @@
+import type { NotificationsState } from '$lib/notifications.svelte';
 import type { AuthenticatedUser } from '$lib/utils/session.svelte';
 import type { Component } from 'svelte';
 
@@ -17,14 +18,16 @@ export function renderWithSession<Props extends Record<string, unknown>>(
   component: Component<Props>,
   props: Props,
   session?: SessionState,
+  notifications?: NotificationsState,
 ) {
   return render(
     SessionHelper as Component<{
       session?: SessionState;
+      notifications?: NotificationsState;
       component: Component<Props>;
       props: Props;
     }>,
-    { props: { session, component, props } },
+    { props: { session, notifications, component, props } },
   );
 }
 
