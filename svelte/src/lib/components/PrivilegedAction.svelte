@@ -34,13 +34,13 @@
    * reasons, so be sure to style accordingly if necessary.
    */
   interface Props extends Omit<HTMLAttributes<HTMLDivElement>, 'placeholder'> {
-    userAuthorised: boolean;
+    userAuthorised?: boolean;
     children: Snippet;
     placeholder?: Snippet;
     unprivileged?: Snippet;
   }
 
-  let { userAuthorised, children, placeholder, unprivileged, ...others }: Props = $props();
+  let { userAuthorised = false, children, placeholder, unprivileged, ...others }: Props = $props();
 
   let session = getSession();
   let isPrivileged = $derived(userAuthorised || session.isSudoEnabled);
