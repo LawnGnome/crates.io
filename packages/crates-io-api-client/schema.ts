@@ -1021,7 +1021,8 @@ export interface paths {
         };
         /** Get the lock status of the given user. */
         get: operations["get"];
-        put?: never;
+        /** Locks the given user. */
+        put: operations["put"];
         post?: never;
         /** Unlocks the given user. */
         delete: operations["delete"];
@@ -5617,6 +5618,53 @@ export interface operations {
                         lock?: null | components["schemas"]["UserLock"];
                     };
                 };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description crates.io username */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                    /** Format: date-time */
+                    until?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Client Error */
             "4XX": {

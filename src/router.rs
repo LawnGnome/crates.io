@@ -67,6 +67,7 @@ pub fn build_axum_router(ctx: ServerContext) -> Router<()> {
         .routes(routes!(
             user::lock::get,
             user::lock::delete,
+            user::lock::put
         ))
         .routes(routes!(token::list_api_tokens, token::create_api_token))
         .routes(routes!(token::find_api_token, token::revoke_api_token))

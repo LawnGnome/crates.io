@@ -1,5 +1,9 @@
-use axum::{Json, extract::Path};
+use axum::{
+    Json,
+    extract::{FromRequest, Path},
+};
 use axum_extra::{TypedHeader, headers::CacheControl};
+use chrono::{DateTime, Utc};
 use crates_io_api_types::EncodableUserLock;
 use crates_io_database::{
     models::{User, users_by_username},
@@ -109,6 +113,65 @@ pub async fn delete(
 
     diesel::update(users::table)
         .set(users::account_lock_reason.eq(None::<String>))
+        .filter(users::id.eq(user.id))
+        .execute(&mut conn)
+        .await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(Debug, Deserialize, Serialize, FromRequest, utoipa::ToSchema)]
+#[from_request(via(Json))]
+pub struct PutRequest {
+    pub reason: String,
+    pub until: Option<DateTime<Utc>>,
+}
+
+/// Locks the given user.
+#[utoipa::path(
+    put,
+    path = "/api/v1/users/{user}/lock",
+    params(
+        ("user" = String, Path, description = "crates.io username"),
+    ),
+    request_body = inline(PutRequest),
+    security(("cookie" = [])),
+    tags = ["users", "admin"],
+    extensions(("x-internal" = json!(true))),
+    responses(
+        (status = 204, description = "Successful Response"),
+        (status = "4XX", description = "Client Error", body = crate::util::errors::ApiErrorResponse<'_>),
+        (status = "5XX", description = "Server Error", body = crate::util::errors::ApiErrorResponse<'_>),
+    ),
+)]
+pub async fn put(
+    ctx: ServerContext,
+    Path(user_name): Path<String>,
+    req: Parts,
+    PutRequest { reason, until }: PutRequest,
+) -> AppResult<StatusCode> {
+    let mut conn = ctx.db_read_prefer_primary().await?;
+
+    AuthCheck::only_cookie()
+        .require_admin()
+        .check(&req, &mut conn)
+        .await?;
+
+    let user = users_by_username(&user_name)
+        .left_join(oauth_github::table)
+        .select(User::as_select())
+        .first(&mut conn)
+        .await?;
+
+    if user.account_lock_reason.is_some() {
+        return Err(conflict("user is already locked"));
+    }
+
+    diesel::update(users::table)
+        .set((
+            users::account_lock_reason.eq(Some(reason)),
+            users::account_lock_until.eq(until),
+        ))
         .filter(users::id.eq(user.id))
         .execute(&mut conn)
         .await?;
