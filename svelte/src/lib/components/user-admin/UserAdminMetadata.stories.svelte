@@ -5,7 +5,7 @@
   import UserAdminMetadata from './UserAdminMetadata.svelte';
 
   const { Story } = defineMeta({
-    title: 'UserAdminMetadata',
+    title: 'user-admin/UserAdminMetadata',
     component: UserAdminMetadata,
     tags: ['autodocs'],
   });

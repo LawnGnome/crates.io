@@ -1,3 +1,4 @@
+import type { AuthenticatedUser } from '$lib/utils/session.svelte';
 import type { ComponentProps } from 'svelte';
 
 import { SvelteDate } from 'svelte/reactivity';
@@ -6,6 +7,20 @@ import UserAdminMetadata from './UserAdminMetadata.svelte';
 
 type Lock = ComponentProps<typeof UserAdminMetadata>['lock'];
 type User = ComponentProps<typeof UserAdminMetadata>['user'];
+
+export const ADMIN_USER: AuthenticatedUser = {
+  id: 42,
+  created_at: null,
+  login: 'admin',
+  name: 'Ad Min',
+  avatar: 'https://avatars.githubusercontent.com/u/1234567?v=4',
+  email: 'admin@example.com',
+  email_verified: true,
+  email_verification_sent: true,
+  is_admin: true,
+  publish_notifications: true,
+  url: 'https://github.com/admin',
+};
 
 export const USER: User = {
   avatar: 'https://avatars.githubusercontent.com/u/1?v=4',
