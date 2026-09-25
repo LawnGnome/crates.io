@@ -42,8 +42,14 @@
 
 <Panel class="p-m">
   <PrivilegedAction>
-    <button disabled={isUpdating} type="button" class="button button--small button--red" onclick={onClick}
-      >Unlock {user.login}</button
+    <button
+      disabled={isUpdating}
+      type="button"
+      class="button button--small button--red"
+      onclick={onClick}
+      data-test-unlock
     >
+      Unlock {user.login}
+    </button>
   </PrivilegedAction>
 </Panel>

@@ -74,6 +74,7 @@
         minlength="1"
         bind:value={reason}
         disabled={isUpdating}
+        data-test-reason
       />
     </div>
 
@@ -86,7 +87,9 @@
 
     <div>
       <PrivilegedAction>
-        <button disabled={isUpdating} type="submit" class="button button--small button--red">Lock {user.login}</button>
+        <button disabled={isUpdating} type="submit" class="button button--small button--red" data-test-lock>
+          Lock {user.login}
+        </button>
       </PrivilegedAction>
     </div>
   </form>
